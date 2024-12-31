@@ -10,9 +10,8 @@
   require 'functions.php';
   $dokter = query("SELECT id FROM dokter WHERE nama = '$_SESSION[username]'")[0]['id'];
  
-  $carijadwal = query("SELECT id FROM jadwal_periksa  WHERE id_dokter = $dokter")[0]['id'];
   
-  $listpasien = query("SELECT daftar_poli.id, daftar_poli.keluhan, daftar_poli.no_antrian, pasien.nama FROM daftar_poli JOIN pasien ON daftar_poli.id_pasien = pasien.id WHERE daftar_poli.id_jadwal = $carijadwal");
+  $listpasien = query("SELECT daftar_poli.id, daftar_poli.id_pasien, daftar_poli.keluhan, daftar_poli.no_antrian, pasien.nama FROM daftar_poli JOIN pasien ON daftar_poli.id_pasien = pasien.id JOIN jadwal_periksa ON daftar_poli.id_jadwal = jadwal_periksa.id WHERE jadwal_periksa.id_dokter = $dokter");
   
   //pagination 
   //fungsi limit membutuhkan parameter offset(mulai) dan limit
@@ -41,7 +40,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AdminLTE 3 | Dashboard</title>
+  <title>Web Poli</title>
 
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -147,7 +146,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a href="kelolaobat.php" class="nav-link">
+            <a href="riwayatpasien.php" class="nav-link">
               <i class="nav-icon far fa-user" style="color: #dbdbdb;"></i>
               <p>
                 Riwayat Pasien
@@ -177,7 +176,7 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Kelola Jadwal Periksa</h1>
+            <h1 class="m-0">Periksa Pasien</h1>
           </div><!-- /.col -->
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -214,21 +213,24 @@
                       <th>Aksi</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <?php foreach($listpasien as $row) :?>
+                  <tbody>                    
+                    <?php 
+                    $no = 1;
+                    foreach($listpasien as $row) :?>
                     <tr>
-                      <td><?= $row["id"]; ?></td>
+                      <td><?= $no;?></td>
                       <td><?= $row["nama"]; ?></td>
                       <td><?= $row["keluhan"]; ?></td>
                       <?php
                       $cekperiksa= query("SELECT * FROM periksa where id_daftar_poli = $row[id]");
                      
                       if (!empty($cekperiksa)) : ?>
-                      <td><a href="ubahperiksa.php?id=<?= $row["id"]; ?>" class="btn btn-warning">Edit</a>
+                      <td><a href="ubahperiksapasien.php?id_pasien=<?= $row["id_pasien"]; ?>&id_daftar_poli=<?= $row["id"]; ?>" class="btn btn-warning">Edit</a>
                       <?php else : ?></td>
-                        <td><a href="tambahperiksa.php?id=<?= $row["id"]; ?>" class="btn btn-danger ml-2">Periksa</a></td>
+                        <td><a href="periksapasien.php?id_pasien=<?= $row["id_pasien"]; ?>&id_daftar_poli=<?= $row["id"]; ?>" class="btn btn-danger ml-2">Periksa</a></td>
                     </tr>
                     <?php endif; ?>
+                    <?php $no++ ?>
                    <?php endforeach; ?>
                   </tbody>
                 </table>

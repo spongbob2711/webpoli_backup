@@ -25,7 +25,7 @@ if(!empty($selected_poli)){
   $detaildokter = query("SELECT * FROM dokter WHERE id_poli = $selected_poli");
 }
 if(!empty($selected_dokter)){
-  $detailjadwal = query("SELECT * FROM jadwal_periksa WHERE id_dokter = $selected_dokter AND status = 'Aktif'");
+  $detailjadwal = query("SELECT * FROM jadwal_periksa WHERE id_dokter = $selected_dokter AND status_jadwal = 'Aktif'");
 }
 
 

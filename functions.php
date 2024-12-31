@@ -135,6 +135,7 @@ function ubahProfilDokter($data){
   mysqli_query($conn, $query_user);
   $query = "UPDATE dokter SET nama = '$nama', alamat = '$alamat', id_poli = '$id_poli' WHERE id = $data[dokter_id]"; 
   mysqli_query($conn, $query);
+  $_SESSION["username"] = $nama;
    
   return mysqli_affected_rows($conn);
 }
@@ -245,6 +246,82 @@ function tambahObat($data){
 mysqli_query($conn, "INSERT INTO obat VALUES('', '$nama', '$kemasan', '$harga')");
 return mysqli_affected_rows($conn);
 }
+
+function tambahHasilPeriksa($data) {
+  global $conn;
+  $id_daftar_poli = htmlspecialchars($data["id_daftar_poli"]);
+  $id_pasien = htmlspecialchars($data["id_pasien"]);
+  $tanggal_periksa = htmlspecialchars($data["tanggal_periksa"]);
+  $catatan = htmlspecialchars($data["catatan"]);
+  $biaya_periksa = htmlspecialchars($data["biaya_periksa"]);
+
+  // Insert into the `hasil_periksa` table
+  $queryHasilPeriksa = "INSERT INTO periksa
+                        VALUES 
+                        ('', '$id_daftar_poli', '$tanggal_periksa', '$catatan', '$biaya_periksa')";
+
+  if (!mysqli_query($conn, $queryHasilPeriksa)) {
+      return false; // Return false if the main insertion fails
+  }
+
+  // Get the ID of the inserted record
+  $id_periksa = mysqli_insert_id($conn);
+
+  // Insert selected medicines into a `detail_periksa` table
+  if (isset($data["obat"]) && is_array($data["obat"])) {
+      foreach ($data["obat"] as $id_obat) {
+          $id_obat = htmlspecialchars($id_obat);
+          $queryDetailPeriksa = "INSERT INTO detail_periksa 
+                                 VALUES 
+                                 ('','$id_periksa', '$id_obat')";
+          if (!mysqli_query($conn, $queryDetailPeriksa)) {
+              return false; // Return false if any detail insertion fails
+          }
+      }
+  }
+
+  return true; // Return true if everything succeeds
+}
+
+function ubahHasilPeriksa($data) {
+  global $conn;
+  $id_daftar_poli = htmlspecialchars($data["id_daftar_poli"]);
+ 
+  $tanggal_periksa = htmlspecialchars($data["tanggal_periksa"]);
+  $catatan = htmlspecialchars($data["catatan"]);
+  $biaya_periksa = htmlspecialchars($data["biaya_periksa"]);
+
+  
+  
+   $queryHasilPeriksa = "UPDATE periksa SET tgl_periksa = '$tanggal_periksa', catatan = '$catatan', biaya_periksa = '$biaya_periksa' WHERE id_daftar_poli = $id_daftar_poli"; 
+
+  if (!mysqli_query($conn, $queryHasilPeriksa)) {
+      return false; 
+  }
+
+
+  
+  
+
+ 
+  if (isset($data["obat"]) && is_array($data["obat"])) {
+    $query_id_periksa = "SELECT id FROM periksa WHERE id_daftar_poli = $id_daftar_poli";
+    $id_periksa = query($query_id_periksa)[0]["id"];
+    mysqli_query($conn, "DELETE FROM detail_periksa WHERE id_periksa = $id_periksa");
+      foreach ($data["obat"] as $id_obat) {
+          $id_obat = htmlspecialchars($id_obat);
+          $queryDetailPeriksa = "INSERT INTO detail_periksa 
+                                 VALUES 
+                                 ('','$id_periksa', '$id_obat')";
+          if (!mysqli_query($conn, $queryDetailPeriksa)) {
+              return false; 
+          }
+      }
+  }
+
+  return true; 
+}
+
 function tambahPoli($data){
   global $conn;
 
@@ -296,5 +373,5 @@ return mysqli_affected_rows($conn);
 }
 
 
-?>
+
 

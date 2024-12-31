@@ -88,7 +88,7 @@ if(isset($_SESSION["login"]) && $_SESSION["role"] == "admin"){
             <div class="card">  
               <div class="card-body">
                 <h5 class="card-title">Register Pasien</h5>
-                <p class="card-text">Apabila Anda adalah seorang Pasien, silahkan Registrasi dahulu untuk melakukan pendaftaran sebagai Pasien!</p>
+                <p class="card-text">Apabila Anda adalah seorang Pasien, silahkan Registrasi untuk melakukan pendaftaran sebagai Pasien!</p>
                 <a href="registerpasien.php" class="btn btn-primary">Register</a>
               </div>
             </div>  

@@ -142,7 +142,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a href="kelolaobat.php" class="nav-link">
+            <a href="riwayatpasien.php" class="nav-link">
               <i class="nav-icon far fa-user" style="color: #dbdbdb;"></i>
               <p>
                 Riwayat Pasien

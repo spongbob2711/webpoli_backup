@@ -8,8 +8,10 @@
   //koneksi ke database
   //parameter : nama host, username, password, nama database
   require 'functions.php';
-  $jadwalperiksa= query("SELECT jadwal_periksa.id, dokter.nama, jadwal_periksa.hari, jadwal_periksa.jam_mulai, jadwal_periksa.jam_selesai, jadwal_periksa.status_jadwal FROM jadwal_periksa JOIN dokter ON jadwal_periksa.id_dokter = dokter.id");
-   //pagination 
+  $listpasien = query("SELECT id,nama,alamat,no_ktp,no_hp,no_rm FROM pasien ORDER BY id ASC;");
+ 
+  
+  //pagination 
   //fungsi limit membutuhkan parameter offset(mulai) dan limit
   // $jumlahDataPerHalaman = 2;
   
@@ -98,25 +100,24 @@
   </nav>
   <!-- /.navbar -->
 
-  <!-- Main Sidebar Container -->
+  
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
-    <!-- Brand Logo -->
+   
     <a href="dashboard.php" class="brand-link">      
       <span class="brand-text font-weight-light">Web Poli</span>
     </a>
 
-    <!-- Sidebar -->
+   
     <div class="sidebar">
-      <!-- Sidebar user panel (optional) -->
+     
      
 
       
 
-      <!-- Sidebar Menu -->
+      
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-          <!-- Add icons to the links using the .nav-icon class
-               with font-awesome or any other icon font library -->
+         
                <li class="nav-item">
             <a href="dashboarddokter.php" class="nav-link">
               <i class="nav-icon far fa-user" style="color: #dbdbdb;"></i>
@@ -126,7 +127,7 @@
             </a>
           </li>
                <li class="nav-item">
-            <a href="#" class="nav-link">
+            <a href="jadwalperiksa.php" class="nav-link">
               <i class="nav-icon far fa-user" style="color: #dbdbdb;"></i>
               <p>
                 Jadwal Periksa
@@ -172,7 +173,7 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Kelola Jadwal Periksa</h1>
+            <h1 class="m-0">Riwayat Periksa Pasien</h1>
           </div><!-- /.col -->
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -193,10 +194,8 @@
           <div class="col-12">
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">Tabel Periksa</h3>
-                <div class="card-tools ml-4 ">
-                  <a href="tambahjadwalperiksa.php" class="btn btn-primary">Tambah Jadwal Periksa</a>
-                </div>
+                <h3 class="card-title">Daftar Riwayat Pasien</h3>
+              
                
               
               </div>
@@ -205,27 +204,36 @@
                 <table class="table table-hover text-nowrap">
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Nama Dokter</th>
-                      <th>Hari</th>
-                      <th>Jam Mulai</th>
-                      <th>Jam Selesai</th>
-                      <th>Status</th>
+                      <th>No</th>
+                      <th>Nama Pasien</th>
+                      <th>Alamat</th>
+                      <th>No.KTP</th>
+                      <th>No.Telepon</th>
+                      <th>No.RM</th>
                       <th>Aksi</th>
-
                     </tr>
                   </thead>
                   <tbody>
-                    <?php foreach($jadwalperiksa as $row) :?>
+                    <?php 
+                    $no_tabel = 1;
+                    foreach($listpasien as $row) :?>
                     <tr>
-                      <td><?= $row["id"]; ?></td>
+                      <td><?= $no_tabel; ?></td>
                       <td><?= $row["nama"]; ?></td>
-                      <td><?= $row["hari"]; ?></td>
-                      <td><?= $row["jam_mulai"]; ?></td>
-                      <td><?= $row["jam_selesai"]; ?></td>
-                      <td><?= $row["status_jadwal"]; ?></td>
-                      <td><a href="ubahjadwalperiksa.php?id=<?= $row["id"]; ?>" class="btn btn-warning">Edit</a><a href="hapusjadwalperiksa.php?id=<?= $row["id"]; ?>" class="btn btn-danger ml-2">Hapus</a></td>
-                    </tr>
+                      <td><?= $row["alamat"]; ?></td>
+                      <td><?= $row["no_ktp"]; ?></td>
+                      <td><?= $row["no_hp"]; ?></td>
+                      <td><?= $row["no_rm"]; ?></td>
+                      <td><a 
+                      href="#" 
+                      class="btn btn-primary"
+                      data-patient-id="<?= $row['id']; ?>" 
+                      data-toggle="modal" 
+                      data-target="#riwayatPeriksaModal">
+                      Detail Riwayat Periksa
+                    </a></td>                     
+                    </tr>    
+                    <?php $no_tabel++; ?>               
                    <?php endforeach; ?>
                   </tbody>
                 </table>
@@ -239,6 +247,45 @@
       <!-- /.container-fluid -->
     </section>
     <!-- /.content -->
+  </div>
+  <div class="modal fade" id="riwayatPeriksaModal" tabindex="-1" aria-labelledby="riwayatPeriksaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="riwayatPeriksaModalLabel">Riwayat Periksa</h5>
+          
+        </div>
+        <div class="modal-body">
+          <!-- Table -->
+           
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+              <thead class="table-dark">
+                <tr>
+                  <th>No</th>
+                  <th>Tanggal Periksa</th>
+                  <th>Nama Pasien</th>
+                  <th>Nama Dokter</th>
+                  <th>Keluhan</th>
+                  <th>Catatan</th>
+                  <th>Obat</th>
+                  <th>Biaya Periksa</th>
+                </tr>
+              </thead>
+              <tbody class="modalContent">
+                
+            
+                 
+              </tbody>
+            </table>
+        
+          </div>
+        </div>
+        <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
   </div>
   <!-- /.content-wrapper -->
   <footer class="main-footer">
@@ -261,6 +308,39 @@
 <script src="app/plugins/jquery/jquery.min.js"></script>
 <!-- jQuery UI 1.11.4 -->
 <script src="app/plugins/jquery-ui/jquery-ui.min.js"></script>
+<script>
+ $(document).on('click', '.btn-primary', function (e) {
+    e.preventDefault();
+
+    const patientId = $(this).data('patient-id'); // Use the correct attribute
+    
+
+    if (!patientId) {
+        console.error('Patient ID not found!');
+        return;
+    }
+
+    $('#modalContent').html('Loading...'); 
+
+    $.ajax({
+        url: 'ambilriwayatpasien.php', 
+        type: 'GET',
+        data: { patient_id: patientId },
+        success: function (response) {
+            
+            $('.modalContent').html(response); 
+        },
+        error: function (xhr, status, error) {
+            console.error(`AJAX Error: ${status}, ${error}`);
+            console.error(xhr.responseText);
+            $('.modalContent').html('Failed to load data. Please try again.');
+        }
+    });
+});
+
+
+
+</script>
 <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
 <script>
   $.widget.bridge('uibutton', $.ui.button)

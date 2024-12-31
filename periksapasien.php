@@ -9,22 +9,34 @@ if(!isset($_SESSION["login"])){
   exit;
 }
   require 'functions.php';
-$id = $_SESSION["id"];
-
+$id_pasien = $_GET["id_pasien"];
+$id_daftar_poli = $_GET["id_daftar_poli"];
 //query data 
 
-$detailpoli= query("SELECT * FROM poli");
-$detaildokter= query("SELECT dokter.id, user.username, user.password, dokter.id_poli FROM user JOIN dokter ON user.id=dokter.user_id WHERE user.id = $id")[0];
+$nama_pasien = query("SELECT nama FROM pasien WHERE id = $id_pasien")[0]["nama"];
+$listobat = query("SELECT * FROM obat");
 
+$biayadokter = 150000;
+$totalHarga = $biayadokter;
 
-
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+  if (isset($_POST['obat']) && is_array($_POST['obat'])) {
+      foreach ($_POST['obat'] as $idObat) {
+          foreach ($listobat as $obat) {
+              if ($obat['id'] == $idObat) {
+                  $totalHarga += $obat['harga'];
+              }
+          }
+      }
+  }
+}
 
 
 
 //cek apakah tombol submit sudah ditekan atau belum
-  if (isset($_POST["submit"])){    
+  if (isset($_POST["submitForm"])){    
     //cek apakah data berhasil diubah
-    if(ubahProfilDokter($_POST) > 0 ){
+    if(tambahHasilPeriksa($_POST) > 0 ){
       echo "
       <script>
       alert('data berhasil diubah');
@@ -41,6 +53,10 @@ $detaildokter= query("SELECT dokter.id, user.username, user.password, dokter.id_
     }   
 
   }
+  date_default_timezone_set('Asia/Jakarta');
+  $tanggal_periksa = $_POST['tanggal_periksa'] ?? date('Y-m-d\TH:i');
+$catatan = $_POST['catatan'] ?? '';
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -48,6 +64,9 @@ $detaildokter= query("SELECT dokter.id, user.username, user.password, dokter.id_
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>AdminLTE 3 | Dashboard</title>
+ <!-- Select2 -->
+ <link rel="stylesheet" href="app/plugins/select2/css/select2.min.css">
+ 
 
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -73,11 +92,7 @@ $detaildokter= query("SELECT dokter.id, user.username, user.password, dokter.id_
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
-  <!-- Preloader -->
-  <div class="preloader flex-column justify-content-center align-items-center">
-    <img class="animation__shake" src="app/dist/img/AdminLTELogo.png" alt="AdminLTELogo" height="60" width="60">
-  </div>
-
+ 
   <!-- Navbar -->
   <nav class="main-header navbar navbar-expand navbar-white navbar-light">
     <!-- Left navbar links -->
@@ -192,35 +207,41 @@ $detaildokter= query("SELECT dokter.id, user.username, user.password, dokter.id_
               <form action="" method="post">
                 <div class="card-body">
                   <div class="form-group">
-                  <input type="hidden" name="id" value="<?= $detaildokter["id"]; ?>">
+                  <input type="hidden" name="id_daftar_poli" value="<?=$id_daftar_poli; ?>">
                     <label for="exampleInputEmail1">Nama Pasien</label>
-                    <input type="text" class="form-control" id="exampleInputEmail1" value = "<?= $detaildokter["username"];?>" name="nama_pasien" readonly>
+                    <input value="<?= $id_pasien;?>" name="id_pasien" hidden>
+                    <input type="text" class="form-control" id="exampleInputEmail1" value = "<?= $nama_pasien;?>" name="nama_pasien" readonly>
                   </div>
                   <div class="form-group">
                     <label for="exampleInputPassword1">Tanggal Periksa</label>
-                    <input type="date" class="form-control" id="exampleInputPassword1" name="tanggal_periksa" value="<?= $detaildokter["password"]; ?>">
+                    <input type="datetime-local" class="form-control" id="exampleInputPassword1" name="tanggal_periksa" value="<?= $tanggal_periksa; ?>">
                   </div>
                   <div class="form-group">
-                  <input type="hidden" name="id" value="<?= $detaildokter["id"]; ?>">
-                    <label for="exampleInputEmail1">Catatan</label>
-                    <input type="text" class="form-control" id="exampleInputEmail1" value = "<?= $detaildokter["username"];?>" name="catatan">
+                  
+                    <label for="exampleInputEmail2">Catatan</label>
+                    <input type="text" class="form-control" id="exampleInputEmail2"  name="catatan" value="<?= $catatan;?>">
                   </div>
-                 
                   <div class="form-group">
-                  <label for="exampleSelectRounded0">Poli</label>
-                    <select name = "id_poli" class="custom-select rounded" id="exampleSelectRounded0">
-                    <?php foreach($detailpoli as $poli) : ?>                    
-                    <?php if($detaildokter["id_poli"] == $poli["id"]) :?>                   
-                    <option  value="<?= $poli['id']; ?>" selected><?= $poli["nama_poli"]; ?></option>
-                    <?php else : ?>
-                    <option  value="<?= $poli['id']; ?>"><?= $poli["nama_poli"]; ?></option>
-                    <?php endif; ?>
-                    <?php endforeach; ?>
+                  <label  >Obat</label>
+                  <select class="select2" multiple="multiple" data-placeholder="Pilih Obat" style="width: 100%;" name="obat[]" onchange="this.form.submit()" >
+                  <?php foreach ($listobat as $obat) : ?>
+                  <option 
+                    value="<?= $obat["id"]; ?>" 
+                    <?= isset($_POST['obat']) && in_array($obat["id"], $_POST['obat']) ? 'selected' : ''; ?>
+                  >
+                    <?= $obat["nama_obat"]; ?> - <?= $obat["kemasan"]; ?> - Rp. <?= $obat["harga"]; ?>
+                  </option>
+                  <?php endforeach; ?>
                   </select>
                 </div>
+                <div class="form-group">
+                  
+                    <label for="exampleInputEmail2">Total Harga</label>
+                    <input type="text" class="form-control" id="exampleInputEmail2" value = "<?= $totalHarga;?>" name="biaya_periksa" readonly>
+                  </div>
                 <!-- /.card-body -->
                 <div class="card-footer">
-                  <button type="submit" class="btn btn-primary" name="submit">Submit</button>
+                  <button type="submit" class="btn btn-primary" name="submitForm">Submit</button>
                 </div>
               </form>
             </div>
@@ -235,10 +256,13 @@ $detaildokter= query("SELECT dokter.id, user.username, user.password, dokter.id_
   </aside>
   <!-- /.control-sidebar -->
 </div>
-<!-- ./wrapper -->
 
-<!-- jQuery -->
+<!-- ./wrapper -->
+ <!-- jQuery -->
 <script src="app/plugins/jquery/jquery.min.js"></script>
+<!-- Select2 -->
+<script src="app/plugins/select2/js/select2.full.min.js"></script>
+
 <!-- jQuery UI 1.11.4 -->
 <script src="app/plugins/jquery-ui/jquery-ui.min.js"></script>
 <!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
@@ -267,7 +291,12 @@ $detaildokter= query("SELECT dokter.id, user.username, user.password, dokter.id_
 <script src="app/plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
 <!-- AdminLTE App -->
 <script src="app/dist/js/adminlte.js"></script>
-
+<script>
+  $(function () {
+    //Initialize Select2 Elements
+    $('.select2').select2()
+  })
+</script>
 
 </body>
 </html>
